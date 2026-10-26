@@ -1,8 +1,21 @@
 import http from 'node:http';
+import { discover } from './discovery.js';
 import { readFile } from 'node:fs/promises';
-const files = { '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/model.js': ['model.js', 'text/javascript'], '/styles.css': ['styles.css', 'text/css'] };
+const files = { '/discovery.js': ['discovery.js', 'text/javascript'], '/discovery-model.js': ['discovery-model.js', 'text/javascript'], '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/model.js': ['model.js', 'text/javascript'], '/styles.css': ['styles.css', 'text/css'] };
 const server = http.createServer(async (req, res) => {
-  const file = files[new URL(req.url, 'http://localhost').pathname];
+  const pathname = new URL(req.url, 'http://localhost').pathname;
+  if (pathname === '/api/jobs' && req.method === 'GET') {
+    try {
+      const data = await discover();
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' });
+      res.end(JSON.stringify(data));
+    } catch {
+      res.writeHead(502, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Job sources could not be reached. Please try again later or use the tailored search links.' }));
+    }
+    return;
+  }
+  const file = files[pathname];
   if (!file || !['GET', 'HEAD'].includes(req.method)) { res.writeHead(404); res.end('Not found'); return; }
   try {
     const body = await readFile(new URL(`./public/${file[0]}`, import.meta.url));

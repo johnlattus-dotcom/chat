@@ -1,4 +1,4 @@
-export const statuses = ['Applied', 'Interviewing', 'Offer', 'Rejected', 'Withdrawn'];
+export const statuses = ['Saved', 'Applied', 'Interviewing', 'Offer', 'Rejected', 'Withdrawn'];
 export function today() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;

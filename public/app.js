@@ -1,3 +1,4 @@
+import { initDiscovery } from './discovery.js';
 import { today, validate, due, pending, calendar } from './model.js';
 const $ = selector => document.querySelector(selector);
 const key = 'next-step-applications-v1';
@@ -18,8 +19,8 @@ function format(date) { return date ? new Date(`${date}T12:00:00`).toLocaleDateS
 function download(content, filename, type) { const url = URL.createObjectURL(new Blob([content], { type })); const a = node('a'); a.href = url; a.download = filename; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
 function openEditor(job) {
   const form = $('#job-form'); form.reset(); $('#form-error').textContent = '';
-  $('#editor-title').textContent = job ? 'Edit application' : 'Add an application';
-  $('#delete').hidden = !job;
+  $('#editor-title').textContent = job && jobs.some(j => j.id === job.id) ? 'Edit application' : 'Add an application';
+  $('#delete').hidden = !job || !jobs.some(j => j.id === job.id);
   const values = job || { id: '', company: '', role: '', status: 'Applied', applied: today(), followup: '', url: '', notes: '', followupDone: false };
   for (const [name, value] of Object.entries(values)) { const field = form.elements.namedItem(name); if (!field) continue; if (field.type === 'checkbox') field.checked = value; else field.value = value; }
   $('#editor').showModal(); form.elements.company.focus();
@@ -86,3 +87,5 @@ render();
 // Refresh overdue counts after midnight and when returning to the tab.
 setInterval(render, 60000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+
+initDiscovery({ openApplication: openEditor, applications: () => jobs });
